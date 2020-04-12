@@ -336,7 +336,7 @@ TUniqueId CAuxWeapon::HasTarget(const CStateManager& mgr) const {
 void CAuxWeapon::SetNewTarget(TUniqueId targetId, CStateManager& mgr) {
   if (x74_firingBeamId == CPlayerState::EBeamId::Wave)
     if (auto* wb = static_cast<CWaveBuster*>(mgr.ObjectById(x70_waveBusterId)))
-      wb->SetNewTarget(targetId);
+      wb->SetNewTarget(targetId, mgr);
 }
 
 } // namespace urde
