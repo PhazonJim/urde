@@ -46,13 +46,15 @@ class CWaveBuster : public CGameProjectile {
   bool x3d0_26_ : 1;
   bool x3d0_27_ : 1;
   bool x3d0_28_ : 1;
+  CLineRenderer m_lineRenderer1;
+  CLineRenderer m_lineRenderer2;
 
   void sub_801be350();
   void sub_801be5c0();
   CRayCastResult sub_801be010(TUniqueId uid, const zeus::CVector3f& p1, const zeus::CVector3f& p2, CStateManager& mgr);
-  void sub_801bf598(float dt, CStateManager& mgr);
+  void UpdateTargetSeek(float dt, CStateManager& mgr);
   void UpdateTargetDamage(float dt, CStateManager& mgr);
-  bool UpdateTargetSeek(float dt, CStateManager& mgr);
+  bool UpdateBeamFrame(CStateManager& mgr, float dt);
   float GetViewAngleToTarget(zeus::CVector3f& p1, const CActor& act);
 public:
   CWaveBuster(const TToken<CWeaponDescription>& desc, EWeaponType type, const zeus::CTransform& xf,
