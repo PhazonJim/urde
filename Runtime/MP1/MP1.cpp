@@ -236,17 +236,7 @@ void CGameArchitectureSupport::specialKeyUp(boo::ESpecialKey key, boo::EModifier
 
 CMain::CMain(IFactory* resFactory, CSimplePool* resStore, boo::IGraphicsDataFactory* gfxFactory,
              boo::IGraphicsCommandQueue* cmdQ, const boo::ObjToken<boo::ITextureR>& spareTex)
-: m_booSetter(gfxFactory, cmdQ, spareTex)
-, x128_globalObjects(resFactory, resStore)
-, x160_24_finished(false)
-, x160_25_mfGameBuilt(false)
-, x160_26_screenFading(false)
-, x160_27_(false)
-, x160_28_manageCard(false)
-, x160_29_(false)
-, x160_30_(false)
-, x160_31_cardBusy(false)
-, x161_24_gameFrameDrawn(false) {
+: m_booSetter(gfxFactory, cmdQ, spareTex), x128_globalObjects(resFactory, resStore) {
   xe4_gameplayResult = EGameplayResult::Playing;
   g_Main = this;
 }
@@ -769,13 +759,6 @@ void CMain::Init(const hecl::Runtime::FileStoreManager& storeMgr, hecl::CVarMana
       [this](hecl::Console* console, const std::vector<std::string>& args) { Warp(console, args); },
       hecl::SConsoleCommand::ECommandFlags::Normal);
 
-  InitializeSubsystems();
-  AddOverridePaks();
-  x128_globalObjects.PostInitialize();
-  x70_tweaks.RegisterTweaks(m_cvarMgr);
-  x70_tweaks.RegisterResourceTweaks(m_cvarMgr);
-  AddWorldPaks();
-
   bool loadedVersion = false;
   if (CDvdFile::FileExists("version.yaml")) {
     CDvdFile file("version.yaml");
@@ -790,14 +773,23 @@ void CMain::Init(const hecl::Runtime::FileStoreManager& storeMgr, hecl::CVarMana
       }
     }
   }
+
+  InitializeSubsystems();
+  AddOverridePaks();
+  x128_globalObjects.PostInitialize();
+  x70_tweaks.RegisterTweaks(m_cvarMgr);
+  x70_tweaks.RegisterResourceTweaks(m_cvarMgr);
+  AddWorldPaks();
+
   if (loadedVersion) {
     if (GetGame() != EGame::MetroidPrime1) {
       MainLog.report(logvisor::Level::Fatal,
                      FMT_STRING("Attempted to initialize URDE in MP1 mode with non-MP1 data!!!!"));
     }
-    boo::SystemStringView versionView(GetVersionString());
-    MainLog.report(logvisor::Level::Info, FMT_STRING("Loading data from Metroid Prime version {} from region {}{}"),
-                   versionView, char(GetRegion()), IsTrilogy() ? _SYS_STR(" from trilogy") : _SYS_STR(""));
+    hecl::SystemStringConv conv(GetVersionString());
+    boo::SystemStringView versionView(conv.sys_str());
+    MainLog.report(logvisor::Level::Info, FMT_STRING(_SYS_STR("Loading data from Metroid Prime version {} from region {}{}")),
+                   versionView, boo::SystemChar(GetRegion()), IsTrilogy() ? _SYS_STR(" from trilogy") : _SYS_STR(""));
   } else {
     MainLog.report(logvisor::Level::Fatal, FMT_STRING("Unable to load version info"));
   }

@@ -157,21 +157,25 @@ constexpr std::array skWingEffects{
     "WingSparks8"sv,
 };
 
-constexpr std::array<SOBBRadiiJointInfo, 4> skTail{{{"Tail_1", "Tail_3", 0.66f},
-                                                    {"Tail_3", "Tail_5", 0.66f},
-                                                    {"Tail_5", "Tail_7", 0.66f},
-                                                    {"Tail_7", "Tail_9", 0.66f}}};
+constexpr std::array<SOBBRadiiJointInfo, 4> skTail{{
+    {"Tail_1", "Tail_3", 0.66f},
+    {"Tail_3", "Tail_5", 0.66f},
+    {"Tail_5", "Tail_7", 0.66f},
+    {"Tail_7", "Tail_9", 0.66f},
+}};
 
-constexpr std::array<SSphereJointInfo, 10> skSphereJoints{{{"Skeleton_Root", 0.6f},
-                                                           {"Spine_2", 0.6f},
-                                                           {"breastPlate_LCTR", 0.6f},
-                                                           {"Head_1", 0.6f},
-                                                           {"L_wrist", 0.5f},
-                                                           {"R_wrist", 0.5f},
-                                                           {"L_ankle", 0.6f},
-                                                           {"R_ankle", 0.6f},
-                                                           {"L_pinky_1", 0.4f},
-                                                           {"R_pinky_1", 0.4f}}};
+constexpr std::array<SSphereJointInfo, 10> skSphereJoints{{
+    {"Skeleton_Root", 0.6f},
+    {"Spine_2", 0.6f},
+    {"breastPlate_LCTR", 0.6f},
+    {"Head_1", 0.6f},
+    {"L_wrist", 0.5f},
+    {"R_wrist", 0.5f},
+    {"L_ankle", 0.6f},
+    {"R_ankle", 0.6f},
+    {"L_pinky_1", 0.4f},
+    {"R_pinky_1", 0.4f},
+}};
 
 struct SSomeRidleyStruct3 {
   float x0_;
@@ -260,31 +264,6 @@ CRidley::CRidley(TUniqueId uid, std::string_view name, const CEntityInfo& info, 
 , x998_(CStaticRes(x568_data.x28_, GetModelData()->GetScale()))
 , x9e4_(CStaticRes(x568_data.x2c_, GetModelData()->GetScale()))
 , xa30_breastPlateSegId(GetModelData()->GetAnimationData()->GetLocatorSegId("breastPlate_LCTR"sv))
-, xa31_24_(true)
-, xa31_25_(true)
-, xa31_26_(false)
-, xa31_27_(false)
-, xa31_28_(false)
-, xa31_29_(false)
-, xa31_30_(false)
-, xa31_31_(false)
-, xa32_24_(false)
-, xa32_25_(false)
-, xa32_26_(false)
-, xa32_28_shotAt(false)
-, xa32_29_(false)
-, xa32_31_(true)
-, xa33_24_(false)
-, xa33_25_(true)
-, xa33_26_(false)
-, xa33_27_(true)
-, xa33_28_(false)
-, xa33_29_doStrafe(false)
-, xa33_30_(false)
-, xa33_31_(false)
-, xa34_24_(false)
-, xa34_25_(false)
-, xa34_26_(false)
 , xa38_(CStaticRes(x568_data.x24_, 4.f * GetModelData()->GetScale()))
 , xadc_(44.f * GetModelData()->GetScale().z())
 , xae0_(20.f * GetModelData()->GetScale().x())

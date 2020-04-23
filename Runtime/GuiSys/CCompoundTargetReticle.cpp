@@ -29,7 +29,6 @@ constexpr char skLockDaggerAssetName[] = "CMDL_LockDagger0";
 constexpr char skGrappleReticleAssetName[] = "CMDL_Grapple";
 constexpr char skXRayRingModelName[] = "CMDL_XRayRetRing";
 constexpr char skThermalReticleAssetName[] = "CMDL_ThermalRet";
-[[maybe_unused]] constexpr char skOrbitPointAssetName[] = "CMDL_OrbitPoint";
 
 float offshoot_func(float f1, float f2, float f3) { return (f1 * 0.5f) + std::sin((f3 - 0.5f) * f2); }
 
@@ -220,7 +219,7 @@ void CCompoundTargetReticle::Update(float dt, const CStateManager& mgr) {
         std::max(x214_fullChargeFadeTimer - dt / g_tweakTargeting->GetFullChargeFadeDuration(), 0.f);
   }
 
-  const bool missileActive = gun->GetMissleMode() == CPlayerGun::EMissleMode::Active;
+  const bool missileActive = gun->GetMissleMode() == CPlayerGun::EMissileMode::Active;
   if (missileActive != x1f4_missileActive) {
     if (x1f8_missileBracketTimer != 0.f) {
       x1f8_missileBracketTimer = FLT_EPSILON - x1f8_missileBracketTimer;

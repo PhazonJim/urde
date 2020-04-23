@@ -221,33 +221,7 @@ CPlayer::CPlayer(TUniqueId uid, const zeus::CTransform& xf, const zeus::CAABox& 
                 stepDown)
 , x2d8_fpBounds(aabb)
 , x7d0_animRes(resId, 0, playerScale, 0, true)
-, x7d8_beamScale(playerScale)
-, x9c4_24_visorChangeRequested(false)
-, x9c4_25_showCrosshairs(false)
-, x9c4_26_(true)
-, x9c4_27_canEnterMorphBall(true)
-, x9c4_28_canLeaveMorphBall(true)
-, x9c4_29_spiderBallControlXY(false)
-, x9c4_30_controlDirOverride(false)
-, x9c4_31_inWaterMovement(false)
-, x9c5_24_(false)
-, x9c5_25_splashUpdated(false)
-, x9c5_26_(false)
-, x9c5_27_camSubmerged(false)
-, x9c5_28_slidingOnWall(false)
-, x9c5_29_hitWall(false)
-, x9c5_30_selectFluidBallSound(false)
-, x9c5_31_stepCameraZBiasDirty(true)
-, x9c6_24_extendTargetDistance(false)
-, x9c6_25_interpolatingControlDir(false)
-, x9c6_26_outOfBallLookAtHint(false)
-, x9c6_27_aimingAtProjectile(false)
-, x9c6_28_aligningGrappleSwingTurn(false)
-, x9c6_29_disableInput(false)
-, x9c6_30_newScanScanning(false)
-, x9c6_31_overrideRadarRadius(false)
-, x9c7_24_noDamageLoopSfx(false)
-, x9c7_25_outOfBallLookAtHintActor(false) {
+, x7d8_beamScale(playerScale) {
   x490_gun = std::make_unique<CPlayerGun>(uid);
   x49c_gunHolsterRemTime = g_tweakPlayerGun->GetGunNotFiringTime();
   x4a0_failsafeTest = std::make_unique<CFailsafeTest>();
@@ -2710,7 +2684,7 @@ void CPlayer::AcceptScriptMsg(EScriptObjectMessage msg, TUniqueId sender, CState
         x300_fallingTime > 0.3f) {
       if (x258_movementState != EPlayerMovementState::Falling) {
         float hardThres = 30.f * 2.f * -g_tweakPlayer->GetNormalGravAccel();
-        hardThres = (hardThres != 0.f) ? hardThres * std::sqrt(hardThres) : 0.f;
+        hardThres = (hardThres != 0.f) ? hardThres * (1.f / std::sqrt(hardThres)) : 0.f;
         const float landVol = zeus::clamp(95.f, 1.6f * -x794_lastVelocity.z() + 95.f, 127.f) / 127.f;
         u16 landSfx;
         if (-x794_lastVelocity.z() < hardThres) {
@@ -3323,7 +3297,7 @@ void CPlayer::UpdateAimTargetPrediction(const zeus::CTransform& xf, const CState
     return;
   }
 
-  x9c6_27_aimingAtProjectile = TCastToConstPtr<CGameProjectile>(target.GetPtr());
+  x9c6_27_aimingAtProjectile = TCastToConstPtr<CGameProjectile>(target.GetPtr()).IsValid();
   const zeus::CVector3f instantTarget = target->GetAimPosition(mgr, 0.f);
   const zeus::CVector3f gunToTarget = instantTarget - xf.origin;
   const float timeToTarget = gunToTarget.magnitude() / x490_gun->GetBeamVelocity();
@@ -5076,7 +5050,7 @@ bool CPlayer::ValidateOrbitTargetIdAndPointer(TUniqueId uid, CStateManager& mgr)
   if (uid == kInvalidUniqueId) {
     return false;
   }
-  return TCastToConstPtr<CActor>(mgr.GetObjectById(uid));
+  return TCastToConstPtr<CActor>(mgr.GetObjectById(uid)).IsValid();
 }
 
 zeus::CVector3f CPlayer::GetBallPosition() const {
@@ -5183,8 +5157,8 @@ void CPlayer::BombJump(const zeus::CVector3f& pos, CStateManager& mgr) {
           x9d4_bombJumpCheckDelayFrames = 2;
         }
       }
-      CSfxHandle hnd = CSfxManager::AddEmitter(SFXsam_ball_jump, GetTranslation(), zeus::skZero3f, false,
-                                               false, 0x7f, kInvalidAreaId);
+      CSfxHandle hnd = CSfxManager::AddEmitter(SFXsam_ball_jump, GetTranslation(), zeus::skZero3f, false, false, 0x7f,
+                                               kInvalidAreaId);
       ApplySubmergedPitchBend(hnd);
     }
   }
@@ -5530,9 +5504,8 @@ bool CPlayer::SidewaysDashAllowed(float strafeInput, float forwardInput, const C
     }
   } else {
     if (x304_orbitState != EPlayerOrbitState::NoOrbit && g_tweakPlayer->GetDashEnabled() &&
-        ControlMapper::GetPressInput(ControlMapper::ECommands::JumpOrBoost, input) &&
-        x288_startingJumpTimeout > 0.f && std::fabs(strafeInput) >= std::fabs(forwardInput) &&
-        std::fabs(strafeInput) > 0.01f) {
+        ControlMapper::GetPressInput(ControlMapper::ECommands::JumpOrBoost, input) && x288_startingJumpTimeout > 0.f &&
+        std::fabs(strafeInput) >= std::fabs(forwardInput) && std::fabs(strafeInput) > 0.01f) {
       const float threshold = std::sqrt(strafeInput * strafeInput + forwardInput * forwardInput) /
                               CalculateLeftStickEdgePosition(strafeInput, forwardInput).magnitude();
       if (threshold >= g_tweakPlayer->GetDashStrafeInputThreshold()) {
@@ -5611,8 +5584,7 @@ void CPlayer::ComputeDash(const CFinalInput& input, float dt, CStateManager& mgr
 
   const float f3 = strafeVel / orbitToPlayer.magnitude();
   const float f2 = dt * (x37c_sidewaysDashing ? M_PIF : (M_PIF * 2.f / 3.f));
-  useOrbitToPlayer =
-      zeus::CQuaternion::fromAxisAngle(zeus::skUp, zeus::clamp(-f2, f3, f2)).transform(orbitToPlayer);
+  useOrbitToPlayer = zeus::CQuaternion::fromAxisAngle(zeus::skUp, zeus::clamp(-f2, f3, f2)).transform(orbitToPlayer);
   orbitPointFlattened += useOrbitToPlayer;
   if (!ControlMapper::GetDigitalInput(ControlMapper::ECommands::JumpOrBoost, input)) {
     x388_dashButtonHoldTime = 0.f;

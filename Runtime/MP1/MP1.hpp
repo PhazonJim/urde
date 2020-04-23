@@ -37,7 +37,6 @@
 #include "Runtime/GuiSys/CTextExecuteBuffer.hpp"
 #include "DataSpec/DNAMP1/Tweaks/CTweakPlayer.hpp"
 #include "DataSpec/DNAMP1/Tweaks/CTweakGame.hpp"
-#include "DataSpec/DNACommon/URDEVersionInfo.hpp"
 #include "hecl/Console.hpp"
 #include "hecl/CVarCommons.hpp"
 
@@ -49,8 +48,6 @@ class IObjectStore;
 
 namespace MP1 {
 class CMain;
-using ERegion = DataSpec::ERegion;
-using EGame = DataSpec::EGame;
 
 class CGameGlobalObjects {
   friend class CMain;
@@ -220,15 +217,15 @@ private:
 
   u32 x130_[10] = {1000000};
 
-  bool x160_24_finished : 1;
-  bool x160_25_mfGameBuilt : 1;
-  bool x160_26_screenFading : 1;
-  bool x160_27_ : 1;
-  bool x160_28_manageCard : 1;
-  bool x160_29_ : 1;
-  bool x160_30_ : 1;
-  bool x160_31_cardBusy : 1;
-  bool x161_24_gameFrameDrawn : 1;
+  bool x160_24_finished : 1 = false;
+  bool x160_25_mfGameBuilt : 1 = false;
+  bool x160_26_screenFading : 1 = false;
+  bool x160_27_ : 1 = false;
+  bool x160_28_manageCard : 1 = false;
+  bool x160_29_ : 1 = false;
+  bool x160_30_ : 1 = false;
+  bool x160_31_cardBusy : 1 = false;
+  bool x161_24_gameFrameDrawn : 1 = false;
 
   std::unique_ptr<CGameArchitectureSupport> x164_archSupport;
 
@@ -315,13 +312,13 @@ public:
   void ListWorlds(hecl::Console*, const std::vector<std::string>&);
   void Warp(hecl::Console*, const std::vector<std::string>&);
   hecl::Console* Console() const override { return m_console.get(); }
-  bool IsPAL() const { return m_version.region == ERegion::PAL; }
-  bool IsJapanese() const { return m_version.region == ERegion::NTSC_J; }
-  bool IsUSA() const { return m_version.region == ERegion::NTSC_U; }
-  bool IsTrilogy() const { return m_version.isTrilogy; }
-  ERegion GetRegion() const { return m_version.region; }
-  EGame GetGame() const { return m_version.game; }
-  std::string_view GetVersionString() const { return m_version.version; }
+  bool IsPAL() const override { return m_version.region == ERegion::PAL; }
+  bool IsJapanese() const override { return m_version.region == ERegion::NTSC_J; }
+  bool IsUSA() const override { return m_version.region == ERegion::NTSC_U; }
+  bool IsTrilogy() const override { return m_version.isTrilogy; }
+  ERegion GetRegion() const override { return m_version.region; }
+  EGame GetGame() const override { return m_version.game; }
+  std::string_view GetVersionString() const override{ return m_version.version; }
 
   int m_warpWorldIdx = -1;
   TAreaId m_warpAreaId = 0;

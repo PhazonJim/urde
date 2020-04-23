@@ -178,11 +178,7 @@ CInGameGuiManager::CInGameGuiManager(CStateManager& stateMgr, CArchitectureQueue
 , x1c_rand(1234)
 , x20_faceplateDecor(stateMgr)
 , x50_deathDot(g_SimplePool->GetObj("TXTR_DeathDot"))
-, x5c_pauseScreenDGRPs(LockPauseScreenDependencies())
-, x1f8_24_(false)
-, x1f8_25_playerAlive(true)
-, x1f8_26_deferTransition(false)
-, x1f8_27_exitSaveUI(true) {
+, x5c_pauseScreenDGRPs(LockPauseScreenDependencies()) {
   x1e0_helmetVisMode = g_tweakGui->GetHelmetVisMode();
   x1e4_enableTargetingManager = g_tweakGui->GetEnableTargetingManager();
   x1e8_enableAutoMapper = g_tweakGui->GetEnableAutoMapper();
@@ -614,11 +610,11 @@ void CInGameGuiManager::Draw(CStateManager& stateMgr) {
 
       if (!m_deathRenderTexQuad)
         m_deathRenderTexQuad.emplace(EFilterType::Blend, CGraphics::g_SpareTexture.get());
-      m_deathRenderTexQuad->drawVerts(zeus::CColor(1.f, colT), verts.data());
+      m_deathRenderTexQuad->drawVerts(zeus::CColor(1.f, colT), verts);
 
       if (!m_deathDotQuad)
         m_deathDotQuad.emplace(EFilterType::Multiply, x50_deathDot);
-      m_deathDotQuad->drawVerts(zeus::CColor(1.f, colT), verts.data());
+      m_deathDotQuad->drawVerts(zeus::CColor(1.f, colT), verts);
     }
   }
 }

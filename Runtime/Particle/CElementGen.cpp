@@ -56,19 +56,7 @@ void CElementGen::Shutdown() { CElementGenShaders::Shutdown(); }
 CElementGen::CElementGen(TToken<CGenDescription> gen, EModelOrientationType orientType, EOptionalSystemFlags flags)
 : x1c_genDesc(std::move(gen))
 , x2c_orientType(orientType)
-, x26c_24_translationDirty(false)
-, x26c_25_LIT_(false)
-, x26c_26_AAPH(false)
-, x26c_27_ZBUF(false)
-, x26c_28_zTest(false)
-, x26c_29_ORNT(false)
-, x26c_30_MBLR(false)
-, x26c_31_LINE(false)
-, x26d_24_FXLL(false)
-, x26d_25_warmedUp(false)
-, x26d_26_modelsUseLights(false)
 , x26d_27_enableOPTS(True(flags & EOptionalSystemFlags::Two))
-, x26d_28_enableADV(false)
 , x27c_randState(x94_randomSeed) {
   CGenDescription* desc = x1c_genDesc.GetObj();
   x28_loadedGenDesc = desc;
@@ -935,7 +923,7 @@ void CElementGen::RenderModels(const CActorLights* actorLights) {
   rot = orient * rot;
 
   CParticleGlobals::instance()->SetEmitterTime(x74_curFrame);
-  zeus::CColor col = {1.f, 1.f, 1.f, 1.f};
+  zeus::CColor col = x338_moduColor;
 
   zeus::CVector3f pmopVec;
   auto matrixIt = x50_parentMatrices.begin();
@@ -992,8 +980,10 @@ void CElementGen::RenderModels(const CActorLights* actorLights) {
     }
 
     CColorElement* pmcl = desc->x78_x64_PMCL.get();
-    if (pmcl)
+    if (pmcl) {
       pmcl->GetValue(partFrame, col);
+      col *= x338_moduColor;
+    }
 
     CGraphics::SetModelMatrix((x10c_globalScaleTransform * partTrans) * x178_localScaleTransform);
 
@@ -1040,11 +1030,10 @@ void CElementGen::RenderModels(const CActorLights* actorLights) {
         model->Draw({5, 0, 1, zeus::CColor(1.f, 0.5f)});
       } else if (desc->x44_31_x31_25_PMAB) {
         model->Draw({7, 0, 1, col});
+      } else if (1.f == col.a()) {
+        model->Draw({0, 0, 3, zeus::skWhite});
       } else {
-        if (1.f == col.a())
-          model->Draw({0, 0, 3, zeus::skWhite});
-        else
-          model->Draw({5, 0, 1, col});
+        model->Draw({5, 0, 1, zeus::CColor(1.f, col.a())});
       }
     }
 

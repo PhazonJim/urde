@@ -48,15 +48,8 @@ CPatterned::CPatterned(ECharacter character, TUniqueId uid, std::string_view nam
 , x300_maxAttackRange(pInfo.x1c_maxAttackRange)
 , x304_averageAttackTime(pInfo.x20_averageAttackTime)
 , x308_attackTimeVariation(pInfo.x24_attackTimeVariation)
-, x328_24_inPosition(false)
 , x328_25_verticalMovement(moveType == EMovementType::Flyer)
-, x328_26_solidCollision(false)
 , x328_27_onGround(moveType != EMovementType::Flyer)
-, x328_28_prevOnGround(true)
-, x328_29_noPatternShagging(false)
-, x328_30_lookAtDeathDir(true)
-, x328_31_energyAttractor(false)
-, x329_24_(true)
 , x34c_character(character)
 , x388_anim(pInfo.GetAnimationParameters().GetInitialAnimation())
 , x3b4_speed(pInfo.x4_speed)
@@ -71,32 +64,8 @@ CPatterned::CPatterned(ECharacter character, TUniqueId uid, std::string_view nam
 , x3dc_frozenXDamageThreshold(pInfo.xe0_frozenXDamage)
 , x3e0_xDamageDelay(pInfo.xe4_xDamageDelay)
 , x3fc_flavor(flavor)
-, x400_24_hitByPlayerProjectile(false)
-, x400_25_alive(true)
-, x400_26_(false)
-, x400_27_fadeToDeath(false)
-, x400_28_pendingMassiveDeath(false)
-, x400_29_pendingMassiveFrozenDeath(false)
-, x400_30_patternShagged(false)
 , x400_31_isFlyer(moveType == CPatterned::EMovementType::Flyer)
-, x401_24_pathOverCount(0)
-, x401_26_disableMove(false)
-, x401_27_phazingOut(false)
-, x401_28_burning(false)
-, x401_29_laggedBurnDeath(false)
-, x401_30_pendingDeath(false)
-, x401_31_nextPendingShock(false)
-, x402_24_pendingShock(false)
-, x402_25_lostMassiveFrozenHP(false)
-, x402_26_dieIf80PercFrozen(false)
-, x402_27_noXrayModel(false)
-, x402_28_isMakingBigStrike(false)
-, x402_29_drawParticles(true)
 , x402_30_updateThermalFrozenState(x402_31_thawed = actorParms.HasThermalHeat())
-, x402_31_thawed(false)
-, x403_24_keepThermalVisorState(false)
-, x403_25_enableStateMachine(true)          // t
-, x403_26_stateControlledMassiveDeath(true)
 , x460_knockBackController(kbVariant) {
   x404_contactDamage = pInfo.x34_contactDamageInfo;
   x424_damageWaitTime = pInfo.x50_damageWaitTime;
@@ -497,10 +466,11 @@ void CPatterned::Death(CStateManager& mgr, const zeus::CVector3f& dir, EScriptOb
 void CPatterned::KnockBack(const zeus::CVector3f& backVec, CStateManager& mgr, const CDamageInfo& info,
                            EKnockBackType type, bool inDeferred, float magnitude) {
   CHealthInfo* hInfo = HealthInfo(mgr);
-  if (!x401_27_phazingOut && !x401_28_burning && hInfo) {
+  if (!x401_27_phazingOut && !x401_28_burning && hInfo != nullptr) {
     x460_knockBackController.KnockBack(backVec, mgr, *this, info, type, magnitude);
-    if (x450_bodyController->IsFrozen() && x460_knockBackController.GetActiveParms().xc_intoFreezeDur >= 0.f)
+    if (x450_bodyController->IsFrozen() && x460_knockBackController.GetActiveParms().xc_intoFreezeDur >= 0.f) {
       x450_bodyController->FrozenBreakout();
+    }
     switch (x460_knockBackController.GetActiveParms().x4_animFollowup) {
     case EKnockBackAnimationFollowUp::Freeze:
       Freeze(mgr, zeus::skZero3f, zeus::CUnitVector3f(x34_transform.transposeRotate(backVec)),
@@ -545,10 +515,11 @@ void CPatterned::KnockBack(const zeus::CVector3f& backVec, CStateManager& mgr, c
       break;
     case EKnockBackAnimationFollowUp::IceDeath:
       Death(mgr, zeus::skZero3f, EScriptObjectState::DeathRattle);
-      if (x54c_iceDeathExplosionParticle)
+      if (x54c_iceDeathExplosionParticle) {
         MassiveFrozenDeath(mgr);
-      else if (x450_bodyController->IsFrozen())
+      } else if (x450_bodyController->IsFrozen()) {
         x450_bodyController->FrozenBreakout();
+      }
       break;
     default:
       break;
@@ -680,8 +651,10 @@ bool CPatterned::Leash(CStateManager&, float arg) {
 }
 
 bool CPatterned::InDetectionRange(CStateManager& mgr, float arg) {
-  zeus::CVector3f delta = mgr.GetPlayer().GetTranslation() - GetTranslation();
-  if (delta.magSquared() < x3bc_detectionRange * x3bc_detectionRange) {
+  zeus::CVector3f delta = GetTranslation() - mgr.GetPlayer().GetTranslation();
+  const float maxRange = x3bc_detectionRange * x3bc_detectionRange;
+  const float dist = delta.magSquared();
+  if (dist < maxRange) {
     if (x3c0_detectionHeightRange > 0.f)
       return delta.z() * delta.z() < x3c0_detectionHeightRange * x3c0_detectionHeightRange;
     return true;
@@ -913,7 +886,11 @@ void CPatterned::TryMeleeAttack(CStateManager& mgr, int arg) {
 }
 
 void CPatterned::TryGenerate(CStateManager& mgr, int arg) {
-  x450_bodyController->GetCommandMgr().DeliverCmd(CBCGenerateCmd(pas::EGenerateType(arg), x2e0_destPos, true));
+  x450_bodyController->GetCommandMgr().DeliverCmd(CBCGenerateCmd(pas::EGenerateType(arg), x2e0_destPos, false));
+}
+
+void CPatterned::TryGenerateNoXf(CStateManager& mgr, int arg) {
+  x450_bodyController->GetCommandMgr().DeliverCmd(CBCGenerateCmd(pas::EGenerateType::Zero, x2e0_destPos, true));
 }
 
 void CPatterned::TryJump(CStateManager& mgr, int arg) {
@@ -966,6 +943,10 @@ void CPatterned::TryKnockBack(CStateManager& mgr, int arg) {
 
 void CPatterned::TryGenerateDeactivate(urde::CStateManager& mgr, int arg) {
   x450_bodyController->GetCommandMgr().DeliverCmd(CBCGenerateCmd(pas::EGenerateType(arg), zeus::skZero3f));
+}
+
+void CPatterned::TryStep(CStateManager& mgr, int arg) {
+  x450_bodyController->GetCommandMgr().DeliverCmd(CBCStepCmd(pas::EStepDirection(arg), pas::EStepType::Normal));
 }
 
 void CPatterned::BuildBodyController(EBodyType bodyType) {

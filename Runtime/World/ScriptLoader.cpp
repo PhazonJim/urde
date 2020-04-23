@@ -33,6 +33,8 @@
 #include "Runtime/MP1/World/CNewIntroBoss.hpp"
 #include "Runtime/MP1/World/COmegaPirate.hpp"
 #include "Runtime/MP1/World/CParasite.hpp"
+#include "Runtime/MP1/World/CPhazonHealingNodule.hpp"
+#include "Runtime/MP1/World/CPhazonPool.hpp"
 #include "Runtime/MP1/World/CPuddleSpore.hpp"
 #include "Runtime/MP1/World/CPuddleToadGamma.hpp"
 #include "Runtime/MP1/World/CPuffer.hpp"
@@ -1052,7 +1054,7 @@ CEntity* ScriptLoader::LoadCameraFilterKeyframe(CStateManager& mgr, CInputStream
   color.readRGBABig(in);
   float timeIn = in.readFloatBig();
   float timeOut = in.readFloatBig();
-  CAssetId txtr = in.readUint32Big();
+  CAssetId txtr(in);
 
   return new CScriptCameraFilterKeyframe(mgr.AllocateUniqueId(), name, info, ftype, shape, filterIdx, unk, color,
                                          timeIn, timeOut, txtr, active);
@@ -2996,14 +2998,16 @@ CEntity* ScriptLoader::LoadMagdolite(CStateManager& mgr, CInputStream& in, int p
   SScaledActorHead actorHead = LoadScaledActorHead(in, mgr);
 
   auto pair = CPatternedInfo::HasCorrectParameterCount(in);
-  if (!pair.first)
+  if (!pair.first) {
     return nullptr;
+  }
 
   CPatternedInfo pInfo(in, pair.second);
   CActorParameters actorParameters = LoadActorParameters(in);
 
-  if (!pInfo.GetAnimationParameters().GetACSFile().IsValid())
+  if (!pInfo.GetAnimationParameters().GetACSFile().IsValid()) {
     return nullptr;
+  }
 
   float f1 = in.readFloatBig();
   float f2 = in.readFloatBig();
@@ -3017,7 +3021,7 @@ CEntity* ScriptLoader::LoadMagdolite(CStateManager& mgr, CInputStream& in, int p
   float f4 = in.readFloatBig();
   float f5 = in.readFloatBig();
   float f6 = in.readFloatBig();
-  MP1::CMagdolite::CMagdoliteData magData(in);
+  CFlameInfo flameInfo(in);
   float f7 = in.readFloatBig();
   float f8 = in.readFloatBig();
   float f9 = in.readFloatBig();
@@ -3028,7 +3032,7 @@ CEntity* ScriptLoader::LoadMagdolite(CStateManager& mgr, CInputStream& in, int p
 
   return new MP1::CMagdolite(mgr.AllocateUniqueId(), actorHead.x0_name, info, actorHead.x10_transform,
                              std::move(modelData), pInfo, actorParameters, f1, f2, damageInfo1, damageInfo2,
-                             damageVulnerability1, damageVulnerability2, modelId, skinId, f3, f4, f5, f6, magData, f7,
+                             damageVulnerability1, damageVulnerability2, modelId, skinId, f6, f3, f4, f5, flameInfo, f7,
                              f8, f9);
 }
 
@@ -3645,7 +3649,6 @@ CEntity* ScriptLoader::LoadOmegaPirate(CStateManager& mgr, CInputStream& in, int
     return nullptr;
   }
 
-#if 0
   SScaledActorHead actHead = LoadScaledActorHead(in, mgr);
   auto pair = CPatternedInfo::HasCorrectParameterCount(in);
   if (!pair.first) {
@@ -3665,18 +3668,62 @@ CEntity* ScriptLoader::LoadOmegaPirate(CStateManager& mgr, CInputStream& in, int
 
   return new MP1::COmegaPirate(mgr.AllocateUniqueId(), actHead.x0_name, info, actHead.x10_transform, std::move(mData),
                                pInfo, actParms, elitePirateData, CAssetId(in), CAssetId(in), CAssetId(in));
-#else
-  return nullptr;
-#endif
 }
 
 CEntity* ScriptLoader::LoadPhazonPool(CStateManager& mgr, CInputStream& in, int propCount, const CEntityInfo& info) {
-  return nullptr;
+  if (!EnsurePropertyCount(propCount, 18, "PhazonPool")) {
+    return nullptr;
+  }
+
+  SScaledActorHead actHead = LoadScaledActorHead(in, mgr);
+  bool active = in.readBool();
+  CAssetId w1{in};
+  CAssetId w2{in};
+  CAssetId w3{in};
+  CAssetId w4{in};
+  u32 u1 = in.readUint32Big();
+  CDamageInfo dInfo{in};
+  zeus::CVector3f orientedForce{in.readVec3f()};
+  ETriggerFlags triggerFlags = static_cast<ETriggerFlags>(in.readUint32Big());
+  float f1 = in.readFloatBig();
+  float f2 = in.readFloatBig();
+  float f3 = in.readFloatBig();
+  bool b2 = in.readBool();
+  float f4 = in.readFloatBig();
+
+  return new MP1::CPhazonPool(mgr.AllocateUniqueId(), actHead.x0_name, info,
+                              zeus::CTransform::Translate(actHead.x10_transform.origin), actHead.x40_scale, active, w1,
+                              w2, w3, w4, u1, dInfo, orientedForce, triggerFlags, b2, f1, f2, f3, f4);
 }
 
 CEntity* ScriptLoader::LoadPhazonHealingNodule(CStateManager& mgr, CInputStream& in, int propCount,
                                                const CEntityInfo& info) {
-  return nullptr;
+  if (!EnsurePropertyCount(propCount, 9, "PhazonHealingNodule")) {
+    return nullptr;
+  }
+
+  SScaledActorHead actHead = LoadScaledActorHead(in, mgr);
+  auto pair = CPatternedInfo::HasCorrectParameterCount(in);
+  if (!pair.first) {
+    return nullptr;
+  }
+
+  CPatternedInfo pInfo(in, pair.second);
+  CActorParameters actParms = LoadActorParameters(in);
+
+  in.readBool();
+  CAssetId w1{in};
+  std::string w2 = in.readString();
+
+  if (!pInfo.GetAnimationParameters().GetACSFile().IsValid()) {
+    return nullptr;
+  }
+
+  CModelData mData(CAnimRes(pInfo.GetAnimationParameters().GetACSFile(), pInfo.GetAnimationParameters().GetCharacter(),
+                            actHead.x40_scale, pInfo.GetAnimationParameters().GetInitialAnimation(), true));
+
+  return new MP1::CPhazonHealingNodule(mgr.AllocateUniqueId(), actHead.x0_name, info, actHead.x10_transform,
+                                       std::move(mData), actParms, pInfo, w1, std::move(w2));
 }
 
 CEntity* ScriptLoader::LoadNewCameraShaker(CStateManager& mgr, CInputStream& in, int propCount,
